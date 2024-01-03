@@ -1,0 +1,22 @@
+version: '1.0'
+services:
+  server:
+    image: parser-server
+    build: back
+    container_name: parser-server
+    restart: always
+    ports:
+      - 8000:8000
+
+  client:
+    image: parser-client
+    build:
+      context: ./front
+      args:
+        - SERVER_URL=${SERVER_URL:-http://localhost:8000}
+    container_name: parser-client
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - server
