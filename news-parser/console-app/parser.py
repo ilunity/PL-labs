@@ -1,6 +1,5 @@
 import datetime
 import time
-from threading import Timer
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,12 +17,14 @@ class NewsParser:
         self.config = config
         self.name = name
 
-    def parse(self):
+    def parse(self, log=False):
         try:
             response = requests.get(self.url)
-            print('Log [Info] ({0}): success response from: {1}.'.format(self.name, self.url))
+            if log:
+                print('Log [Info] ({0}): success response from: {1}.'.format(self.name, self.url))
         except Exception as e:
-            print('Log [Error] ({0}): {1}.'.format(self.name, e))
+            if log:
+                print('Log [Error] ({0}): {1}.'.format(self.name, e))
             return []
 
         soap = BeautifulSoup(response.text, 'html.parser')
@@ -50,8 +51,9 @@ class NewsParser:
         # print('Log [Info] ({0}): success parsing.'.format(self.name))
         return news
 
-    def start_parser(self, queue, stop_event, delay=300):
-        print('Log [Info] ({0}): parsing started.'.format(self.name))
+    def start_parser(self, queue, stop_event, delay=300, log=False):
+        if log:
+            print('Log [Info] ({0}): parsing started.'.format(self.name))
         self.queue = queue
 
         target = datetime.datetime.now()

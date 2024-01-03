@@ -3,6 +3,8 @@ from queue import Queue, Empty
 from threading import Thread, Event
 from parsers.washington_post_parser import WP_parser, WP_PARSER_NAME
 from parsers.new_york_times_parser import NYT_parser, NYT_PARSER_NAME
+from parsers.los_angeles_post_parser import LAP_parser, LAP_PARSER_NAME
+
 
 def consumer(queue, callback):
     while True:
@@ -13,19 +15,30 @@ def consumer(queue, callback):
             time.sleep(0.5)
             continue
 
+
+parser_type_2_name = {
+    WP_PARSER_NAME: "Washington Post",
+    NYT_PARSER_NAME: "New York Time",
+    LAP_PARSER_NAME: "Los Angeles Post"
+}
+
+
+def print_news_item(item):
+    print('Title:', item['title'], sep=' ')
+    print(item['content'], end='\n')
+    print('-' * 20)
+
+
 if __name__ == "__main__":
-    parsers = [WP_parser, NYT_parser]
-    news_store = {
-        WP_PARSER_NAME: [],
-        NYT_PARSER_NAME: []
-    }
-    threads = []
     queue = Queue()
     stop_parsing_event = Event()
 
+    parsers = [WP_parser, NYT_parser, LAP_parser]
+    threads = []
+
 
     def start_parser(parser):
-        thread = Thread(target=parser.start_parser, args=(queue, stop_parsing_event,), daemon=True)
+        thread = Thread(target=parser.start_parser, args=(queue, stop_parsing_event), daemon=True)
         thread.start()
         threads.append(thread)
 
@@ -33,14 +46,16 @@ if __name__ == "__main__":
     for parser in parsers:
         start_parser(parser)
 
+
     def handleQueueItemReceive(item):
-        parser_name = item['parser_name']
-        parse_result = item['result']
+        magazine_name = parser_type_2_name[item['parser_name']]
 
-        news_store[parser_name].append(parse_result)
-        news_store[parser_name].extend(parse_result)
+        print()
+        print('-' * 50, magazine_name, '-' * 50, sep=' ')
 
-        print(news_store)
+        result = item['result']
+        for news_item in result:
+            print_news_item(news_item)
 
 
     try:
